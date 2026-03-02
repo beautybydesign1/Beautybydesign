@@ -712,6 +712,69 @@ h1, h2, h3 {
   }
 }
 
+/* ===== Places Autocomplete ===== */
+.places-autocomplete-container {
+  position: relative;
+}
+
+.places-autocomplete-dropdown {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.places-autocomplete-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.places-autocomplete-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.places-autocomplete-dropdown::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.places-autocomplete-dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-light);
+}
+
+.places-autocomplete-item:hover {
+  background: rgba(197, 169, 129, 0.08) !important;
+}
+
+/* ===== Animations ===== */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
 /* ===== Utilities ===== */
 .sr-only {
   position: absolute;
@@ -732,4 +795,9 @@ h1, h2, h3 {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Spin animation utility class */
+.animate-spin {
+  animation: spin 1s linear infinite;
 }

@@ -2,14 +2,14 @@
 
 import { useState, useCallback } from "react";
 import { BEAUTICIAN } from "@/app/data/services";
-import PlacesAutocomplete from "./PlacesAutocomplete";
+import PhotonAutocomplete from "./PhotonAutocomplete";
 import NotificationContainer from "./NotificationToast";
 import { useNotification } from "@/app/hooks/useNotification";
-import { SelectedPlace } from "@/app/types/places";
+import { PhotonGeocodingResult } from "@/app/types/photon";
 
-export default function TravelCalculator() {
+export default function TravelCalculatorPhoton() {
     const [address, setAddress] = useState("");
-    const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
+    const [selectedPlace, setSelectedPlace] = useState<PhotonGeocodingResult | null>(null);
     const [distanceMiles, setDistanceMiles] = useState<number | null>(null);
     const [isCalculating, setIsCalculating] = useState(false);
     const [error, setError] = useState("");
@@ -28,7 +28,7 @@ export default function TravelCalculator() {
         setIsCalculating(true);
 
         try {
-            // If we have coordinates from Places API or geolocation, use them
+            // If we have coordinates from Photon API or geolocation, use them
             if (selectedPlace && selectedPlace.latitude !== 0 && selectedPlace.longitude !== 0) {
                 const response = await fetch("/api/distance", {
                     method: "POST",
@@ -74,17 +74,15 @@ export default function TravelCalculator() {
     }, [address, selectedPlace, showSuccess, showError]);
 
     /**
-     * Handle place selection from autocomplete
+     * Handle place selection from Photon autocomplete
      */
-    const handlePlaceSelect = useCallback((place: SelectedPlace) => {
-        setSelectedPlace(place);
-        setAddress(place.formattedAddress);
-        setDistanceMiles(null); // Reset distance when place changes
+    const handlePlaceSelect = useCallback((result: PhotonGeocodingResult) => {
+        setSelectedPlace(result);
+        setAddress(result.formattedAddress);
+        setDistanceMiles(null);
         setError("");
         
-        if (place.placeId === 'geolocation') {
-            showSuccess('Location detected successfully!');
-        }
+        showSuccess('Address selected successfully!');
     }, [showSuccess]);
 
     /**
@@ -92,7 +90,6 @@ export default function TravelCalculator() {
      */
     const handleAddressChange = useCallback((value: string) => {
         setAddress(value);
-        // Reset distance when user types (they might be changing the address)
         if (distanceMiles !== null) {
             setDistanceMiles(null);
         }
@@ -114,9 +111,32 @@ export default function TravelCalculator() {
                     Enter your location to see the estimated travel fee to your address.
                 </p>
 
+                {/* Powered by Photon badge */}
+                {/* <div style={{ 
+                    textAlign: 'center', 
+                    marginBottom: '16px',
+                    fontSize: '12px',
+                    color: 'var(--color-text-muted)',
+                }}>
+                    <span style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '6px',
+                        padding: '6px 12px',
+                        background: 'rgba(197, 169, 129, 0.1)',
+                        borderRadius: '20px',
+                    }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                        Powered by Photon - Free Geocoding
+                    </span>
+                </div> */}
+
                 <div className="form-fields">
                     <div className="input-group">
-                        <PlacesAutocomplete
+                        <PhotonAutocomplete
                             id="calculator-address"
                             label="Your Location"
                             value={address}
@@ -165,23 +185,60 @@ export default function TravelCalculator() {
 
                     {distanceMiles !== null && !isCalculating && (
                         <div className="pricing-panel fade-in" style={{ marginTop: 24, padding: 20 }}>
-                            <div className="pricing-row">
-                                <span className="label">Estimated Distance</span>
-                                <span className="value">{distanceMiles.toFixed(1)} miles</span>
-                            </div>
-                            <div className="pricing-row">
-                                <span className="label">Rate per Mile</span>
-                                <span className="value">${BEAUTICIAN.travelFeePerMile.toFixed(2)}</span>
-                            </div>
-                            <div className="pricing-divider" />
-                            <div className="pricing-row pricing-total" style={{ paddingBottom: 0 }}>
-                                <span className="label" style={{ fontSize: 18 }}>Estimated Travel Fee</span>
-                                <span className="value" style={{ fontSize: 22, color: 'var(--color-primary-dark)' }}>
-                                    ${travelFee.toFixed(2)}
-                                </span>
-                            </div>
+                            {distanceMiles < 10 ? (
+                                // No fee for under 10 miles
+                                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                                    <svg 
+                                        width="48" 
+                                        height="48" 
+                                        viewBox="0 0 24 24" 
+                                        fill="none" 
+                                        stroke="var(--color-success)" 
+                                        strokeWidth="2"
+                                        style={{ margin: '0 auto 16px' }}
+                                    >
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                        <polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                    <h3 style={{ 
+                                        fontSize: '20px', 
+                                        fontWeight: 600, 
+                                        color: 'var(--color-success)',
+                                        marginBottom: '8px',
+                                    }}>
+                                        No Extra Travel Fee
+                                    </h3>
+                                    <p style={{ 
+                                        color: 'var(--color-text-muted)', 
+                                        fontSize: '14px',
+                                        margin: 0,
+                                    }}>
+                                        Your location is {distanceMiles.toFixed(1)} miles away.<br/>
+                                        No additional travel charges apply.
+                                    </p>
+                                </div>
+                            ) : (
+                                // Show fee for 10+ miles
+                                <>
+                                    <div className="pricing-row">
+                                        <span className="label">Estimated Distance</span>
+                                        <span className="value">{distanceMiles.toFixed(1)} miles</span>
+                                    </div>
+                                    <div className="pricing-row">
+                                        <span className="label">Rate per Mile</span>
+                                        <span className="value">${BEAUTICIAN.travelFeePerMile.toFixed(2)}</span>
+                                    </div>
+                                    <div className="pricing-divider" />
+                                    <div className="pricing-row pricing-total" style={{ paddingBottom: 0 }}>
+                                        <span className="label" style={{ fontSize: 18 }}>Estimated Travel Fee</span>
+                                        <span className="value" style={{ fontSize: 22, color: 'var(--color-primary-dark)' }}>
+                                            ${travelFee.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
                             
-                            {selectedPlace?.placeId === 'geolocation' && (
+                            {selectedPlace && (
                                 <div style={{ 
                                     marginTop: 12, 
                                     padding: '10px 14px',
@@ -196,7 +253,7 @@ export default function TravelCalculator() {
                                     <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
-                                    Location detected using your device&apos;s GPS
+                                    Location found: {selectedPlace.city}, {selectedPlace.state}
                                 </div>
                             )}
                         </div>

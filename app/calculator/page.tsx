@@ -1,4 +1,4 @@
-import TravelCalculator from "@/app/components/TravelCalculator";
+import TravelCalculatorPhoton from "@/app/components/TravelCalculatorPhoton";
 import { BEAUTICIAN } from "@/app/data/services";
 
 export default function CalculatorPage() {
@@ -17,7 +17,7 @@ export default function CalculatorPage() {
             </header>
 
             <div style={{ padding: '20px 0' }}>
-                <TravelCalculator />
+                <TravelCalculatorPhoton />
             </div>
         </main>
     );

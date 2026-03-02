@@ -26,13 +26,26 @@ function haversineDistance(
 
 export async function POST(request: NextRequest) {
     try {
-        const { address } = await request.json();
+        const { address, latitude, longitude } = await request.json();
 
         if (!address) {
             return NextResponse.json(
                 { error: "Address is required" },
                 { status: 400 }
             );
+        }
+
+        // If coordinates are provided from the frontend (Places API or geolocation)
+        if (typeof latitude === 'number' && typeof longitude === 'number' && 
+            latitude !== 0 && longitude !== 0) {
+            const distanceMiles = haversineDistance(BASE_LAT, BASE_LNG, latitude, longitude);
+            
+            return NextResponse.json({
+                distanceMiles: Math.round(distanceMiles * 10) / 10,
+                travelFee: Math.round(distanceMiles),
+                formattedAddress: address,
+                coordinates: { lat: latitude, lng: longitude },
+            });
         }
 
         // Try to use Google Maps Geocoding API if key is available
@@ -56,6 +69,7 @@ export async function POST(request: NextRequest) {
                         distanceMiles: Math.round(distanceMiles * 10) / 10,
                         travelFee: Math.round(distanceMiles),
                         formattedAddress: geocodeData.results[0].formatted_address,
+                        coordinates: { lat, lng },
                     });
                 }
             } catch {
@@ -64,13 +78,16 @@ export async function POST(request: NextRequest) {
         }
 
         // Fallback: estimate based on common Delaware distances
-        const estimatedDistance = 8 + Math.random() * 20;
+        // Use a pseudo-random but consistent estimate based on the address string
+        const hash = address.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+        const estimatedDistance = 5 + (hash % 20); // Distance between 5-25 miles
         const rounded = Math.round(estimatedDistance * 10) / 10;
 
         return NextResponse.json({
             distanceMiles: rounded,
             travelFee: Math.round(rounded),
             formattedAddress: address,
+            estimated: true,
         });
     } catch {
         return NextResponse.json(
