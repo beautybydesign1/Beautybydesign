@@ -95,8 +95,8 @@ async function getDistanceMatrixDistance(
             const element = dmData.rows[0].elements[0];
             console.log('Distance Matrix Result:', element);
             return {
-                distanceMeters: element.distance.value || 0,
-                durationSeconds: element.duration.value || 0,
+                distanceMeters: element.distance?.value ?? 0,
+                durationSeconds: element.duration?.value ?? 0,
             };
         } else {
             console.error('Distance Matrix Error status:', {
@@ -162,7 +162,7 @@ async function calculateDrivingDistance(
     // Try Routes API first (more accurate)
     let drivingData = await getRoutesApiDistance(originLat, originLng, destLat, destLng, apiKey);
     
-    if (drivingData && drivingData.distanceMeters > 0) {
+    if (drivingData && drivingData.distanceMeters >= 0) {
         return {
             distanceMiles: metersToMiles(drivingData.distanceMeters),
             travelTimeMinutes: Math.round(drivingData.durationSeconds / 60),
@@ -175,7 +175,7 @@ async function calculateDrivingDistance(
     
     console.log('Distance Matrix drivingData:', drivingData);
     
-    if (drivingData && drivingData.distanceMeters > 0) {
+    if (drivingData && drivingData.distanceMeters >= 0) {
         return {
             distanceMiles: metersToMiles(drivingData.distanceMeters),
             travelTimeMinutes: Math.round(drivingData.durationSeconds / 60),

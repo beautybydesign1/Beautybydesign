@@ -100,6 +100,7 @@ export default function TravelCalculator() {
     }, [distanceMiles]);
 
     const travelFee = distanceMiles !== null ? Math.round(distanceMiles * BEAUTICIAN.travelFeePerMile) : 0;
+    const isWithin10Miles = distanceMiles !== null && distanceMiles < 10;
 
     return (
         <div className="step-content fade-in">
@@ -169,17 +170,41 @@ export default function TravelCalculator() {
                                 <span className="label">Estimated Distance</span>
                                 <span className="value">{distanceMiles.toFixed(1)} miles</span>
                             </div>
-                            <div className="pricing-row">
-                                <span className="label">Rate per Mile</span>
-                                <span className="value">${BEAUTICIAN.travelFeePerMile.toFixed(2)}</span>
-                            </div>
+                            {!isWithin10Miles && (
+                                <div className="pricing-row">
+                                    <span className="label">Rate per Mile</span>
+                                    <span className="value">${BEAUTICIAN.travelFeePerMile.toFixed(2)}</span>
+                                </div>
+                            )}
                             <div className="pricing-divider" />
                             <div className="pricing-row pricing-total" style={{ paddingBottom: 0 }}>
                                 <span className="label" style={{ fontSize: 18 }}>Estimated Travel Fee</span>
-                                <span className="value" style={{ fontSize: 22, color: 'var(--color-primary-dark)' }}>
-                                    ${travelFee.toFixed(2)}
+                                <span className="value" style={{ 
+                                    fontSize: 22, 
+                                    color: isWithin10Miles ? 'var(--color-success)' : 'var(--color-primary-dark)'
+                                }}>
+                                    {isWithin10Miles ? 'No fees charged' : `${travelFee.toFixed(2)}`}
                                 </span>
                             </div>
+                            
+                            {isWithin10Miles && (
+                                <div style={{ 
+                                    marginTop: 12, 
+                                    padding: '10px 14px',
+                                    background: 'rgba(87, 165, 122, 0.1)',
+                                    borderRadius: '8px',
+                                    fontSize: '13px',
+                                    color: 'var(--color-success)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                }}>
+                                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    Within 10-mile service area - Free travel
+                                </div>
+                            )}
                             
                             {selectedPlace?.placeId === 'geolocation' && (
                                 <div style={{ 
