@@ -39,6 +39,7 @@ export type GeolocationError =
     | { type: 'PERMISSION_DENIED'; message: string }
     | { type: 'POSITION_UNAVAILABLE'; message: string }
     | { type: 'TIMEOUT'; message: string }
+    | { type: 'GEOCODING_FAILED'; message: string }
     | { type: 'UNKNOWN'; message: string };
 
 /**

@@ -21,31 +21,59 @@ export default function GeolocationButton({
     });
 
     /**
-     * Get a human-readable address from coordinates using reverse geocoding
+     * Get a human-readable address from coordinates using Google Geocoding API
+     * Prefers street addresses over plus codes
      */
     const getAddressFromCoordinates = async (
         latitude: number,
         longitude: number
     ): Promise<string> => {
         try {
-            // Try to use Google Geocoding API if available
+            // Use Google Geocoding API
             const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
             
-            if (apiKey) {
-                const response = await fetch(
-                    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
-                );
-                const data = await response.json();
-                
-                if (data.status === 'OK' && data.results && data.results.length > 0) {
-                    return data.results[0].formatted_address;
+            if (!apiKey) {
+                throw new Error('Google Maps API key not configured');
+            }
+
+            const response = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
+            );
+            const data = await response.json();
+            
+            if (data.status === 'OK' && data.results && data.results.length > 0) {
+                // Find the best human-readable address
+                // Prefer results with street_address type, avoid plus codes
+                for (const result of data.results) {
+                    // Skip plus codes (they contain '+' and have specific format)
+                    if (result.plus_code?.global_code) {
+                        continue;
+                    }
+                    
+                    // Prefer results with street_address or route types
+                    const hasStreetAddress = result.types?.includes('street_address') || 
+                                            result.types?.includes('route');
+                    
+                    if (hasStreetAddress || result.types?.includes('premise')) {
+                        return result.formatted_address;
+                    }
                 }
+                
+                // If no street address found, return first result that isn't a plus code
+                for (const result of data.results) {
+                    if (result.formatted_address && !result.formatted_address.includes('+')) {
+                        return result.formatted_address;
+                    }
+                }
+                
+                // Last resort: return first result
+                return data.results[0].formatted_address;
             }
             
-            // Fallback: return coordinates as string
-            return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-        } catch {
-            return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+            throw new Error('No results from geocoding API');
+        } catch (error) {
+            console.error('Reverse geocoding error:', error);
+            throw error; // Re-throw to trigger error handling in caller
         }
     };
 
@@ -142,7 +170,7 @@ export default function GeolocationButton({
                 const { latitude, longitude } = position.coords;
                 
                 try {
-                    // Get address from coordinates
+                    // Get address from coordinates using Google Geocoding API
                     const address = await getAddressFromCoordinates(latitude, longitude);
                     
                     setState({
@@ -152,19 +180,18 @@ export default function GeolocationButton({
                     });
                     
                     onLocationFound(latitude, longitude, address);
-                } catch {
-                    // Even if reverse geocoding fails, we still have coordinates
+                } catch (geocodeError) {
+                    // Reverse geocoding failed - show error to user
+                    const error: GeolocationError = {
+                        type: 'GEOCODING_FAILED',
+                        message: 'Could not determine your address from location. Please enter your address manually.',
+                    };
                     setState({
                         isLoading: false,
-                        error: null,
+                        error,
                         permission: 'granted',
                     });
-                    
-                    onLocationFound(
-                        latitude,
-                        longitude,
-                        `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-                    );
+                    onError?.(error);
                 }
             },
             (error) => {
