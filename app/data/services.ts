@@ -50,7 +50,7 @@ export const BEAUTICIAN = {
     lng: -75.7163207,
     address: "Middletown, Delaware 19709",
   },
-  travelFeePerMile: 2,
+  travelFeePerMile: 1,
   depositPercentage: 50,
   cancellationPolicy:
     "Deposit nonrefundable. More than 24 hrs notice: No cancellation fee, deposit transferable to future appointment within 6 months. Less than 24 hrs notice/no-show/late arrival over 15 mins: Cancellation fee is amount of deposit.",
