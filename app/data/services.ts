@@ -46,9 +46,9 @@ export const BEAUTICIAN = {
   phone: "+13026605338",
   email: "ngotorop@gmail.com",
   baseLocation: {
-    lat: 39.449556,
-    lng: -75.7163207,
-    address: "Middletown, Delaware 19709",
+    lat: 39.5905,
+    lng: -75.8245,
+    address: "311 Augustine Herman Hwy, Elkton, MD 21921",
   },
   travelFeePerMile: 1,
   depositPercentage: 50,
