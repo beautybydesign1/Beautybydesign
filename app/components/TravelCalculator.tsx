@@ -123,7 +123,7 @@ export default function TravelCalculator() {
                             value={address}
                             onChange={handleAddressChange}
                             onSelect={handlePlaceSelect}
-                            placeholder="e.g. 123 Main St, Middletown, DE"
+                            placeholder="e.g. 123 Main St, Elkton, MD"
                             error={error}
                             disabled={isCalculating}
                         />

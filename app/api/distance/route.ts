@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { BEAUTICIAN } from "@/app/data/services";
 
-// Beautician base location (Middletown, Delaware)
-const BASE_LAT = 39.449556;
-const BASE_LNG = -75.7163207;
+const BASE_LAT = BEAUTICIAN.baseLocation.lat;
+const BASE_LNG = BEAUTICIAN.baseLocation.lng;
 
 /**
  * Get driving distance using Google Routes API
