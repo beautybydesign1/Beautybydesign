@@ -22,6 +22,7 @@ async function getRoutesApiDistance(
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration',
             },
             body: JSON.stringify({
                 origin: {
